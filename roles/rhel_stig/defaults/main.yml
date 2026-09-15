@@ -1,0 +1,40 @@
+---
+required_packages:
+  - openscap-scanner
+  - scap-security-guide
+  - scap-security-guide-doc
+  - bzip2
+  - xmlstarlet
+
+report_dir: /var/tmp/stig-reports
+
+# Shared STIG profile ID across RHEL family SSG content
+stig_profile: xccdf_org.ssgproject.content_profile_stig
+
+# Per-OS config keyed by "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}"
+# Single-rule remediation kept for easy testing — override per OS as needed.
+stig_os_config:
+  RedHat-8:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-rhel8-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue
+  RedHat-9:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue
+  RedHat-10:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-rhel10-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue
+  Rocky-8:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-rl8-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue
+  Rocky-9:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue
+  AlmaLinux-8:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-almalinux8-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue
+  AlmaLinux-9:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-almalinux9-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue
+  CentOS-8:
+    scap_ds_path: /usr/share/xml/scap/ssg/content/ssg-centos8-ds.xml
+    stig_remediate_rule: xccdf_org.ssgproject.content_rule_banner_etc_issue

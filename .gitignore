@@ -1,0 +1,23 @@
+# Ansible / Python
+*.retry
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Generated scan artifacts (can be large; regenerate via playbook)
+reports/
+
+# Secrets / keys
+*.pem
+*.key
+.env
+.env.*
+credentials*
+*_credentials*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

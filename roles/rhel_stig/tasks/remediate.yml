@@ -1,0 +1,21 @@
+---
+# Remediates ONLY the OS-selected stig_remediate_rule for easy testing.
+- name: Remediate single STIG rule for {{ stig_os_key }}
+  ansible.builtin.command: >
+    oscap xccdf eval
+    --remediate
+    --profile {{ stig_profile }}
+    --rule {{ stig_remediate_rule }}
+    --results {{ report_dir }}/remediate-results.xml
+    --report {{ report_dir }}/remediate-report.html
+    {{ scap_ds_path }}
+  register: remediate_result
+  failed_when: false
+  changed_when: true
+
+- name: Display remediation target and status
+  ansible.builtin.debug:
+    msg: >-
+      OS {{ stig_os_key }}: remediated rule {{ stig_remediate_rule }}.
+      Exit code: {{ remediate_result.rc }}.
+      Detail report: {{ report_dir }}/remediate-report.html

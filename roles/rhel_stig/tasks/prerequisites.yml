@@ -1,0 +1,19 @@
+---
+- name: Ensure required OpenSCAP packages are installed
+  ansible.builtin.package:
+    name: "{{ required_packages }}"
+    state: present
+
+- name: Create local report directory
+  ansible.builtin.file:
+    path: "{{ report_dir }}"
+    state: directory
+    mode: "0750"
+    owner: root
+    group: root
+
+- name: Verify SCAP datastream exists for {{ stig_os_key }}
+  ansible.builtin.stat:
+    path: "{{ scap_ds_path }}"
+  register: ds_file_check
+  failed_when: not ds_file_check.stat.exists

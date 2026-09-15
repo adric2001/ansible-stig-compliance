@@ -1,0 +1,24 @@
+---
+- name: RHEL-family DISA STIG Compliance Assessment and Remediation
+  hosts: stig_hosts
+  become: true
+  gather_facts: false
+  pre_tasks:
+    # Alma/RHEL 8 ship Python 3.6; ansible-core 2.17+ needs 3.8+.
+    - name: Bootstrap Python 3.9 when missing
+      ansible.builtin.raw: |
+        if [ ! -x /usr/bin/python3.9 ]; then
+          if command -v dnf >/dev/null 2>&1; then
+            dnf install -y python39
+          else
+            yum install -y python39
+          fi
+        fi
+      register: python_bootstrap
+      changed_when: "'Installed' in (python_bootstrap.stdout | default('')) or 'Complete!' in (python_bootstrap.stdout | default(''))"
+      failed_when: false
+
+    - name: Gather facts
+      ansible.builtin.setup:
+  roles:
+    - rhel_stig

@@ -1,0 +1,11 @@
+---
+# Vars for all hosts in stig_hosts (static + dynamic EC2).
+#
+# Opt-in on EC2 (dynamic inventory):
+#   stig_scan = true          required to appear in inventory/aws_ec2.yml
+#   ansible_user = ec2-user   optional
+#   ansible_python = /usr/bin/python3.9   optional (Alma/RHEL 8)
+#   stig_env = lab|prod       optional --limit tag_stig_env_lab
+#
+# Force a specific remediation rule on every host:
+# stig_remediate_rule_override: xccdf_org.ssgproject.content_rule_banner_etc_issue

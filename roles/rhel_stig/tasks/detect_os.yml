@@ -1,0 +1,28 @@
+---
+- name: Build OS lookup key
+  ansible.builtin.set_fact:
+    stig_os_key: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}"
+
+- name: Fail when OS is not supported
+  ansible.builtin.fail:
+    msg: >-
+      Unsupported OS '{{ stig_os_key }}'.
+      Add an entry under stig_os_config in roles/rhel_stig/defaults/main.yml.
+      Supported: {{ stig_os_config.keys() | list | join(', ') }}
+  when: stig_os_key not in stig_os_config
+
+- name: Apply OS-specific STIG settings
+  ansible.builtin.set_fact:
+    scap_ds_path: "{{ stig_os_config[stig_os_key].scap_ds_path }}"
+    stig_remediate_rule: "{{ stig_remediate_rule_override | default(stig_os_config[stig_os_key].stig_remediate_rule) }}"
+    stig_os_family: "{{ ansible_os_family }}"
+    stig_os_version: "{{ ansible_distribution_version }}"
+
+- name: Show selected OS STIG config
+  ansible.builtin.debug:
+    msg:
+      os: "{{ stig_os_key }}"
+      version: "{{ stig_os_version }}"
+      datastream: "{{ scap_ds_path }}"
+      profile: "{{ stig_profile }}"
+      remediate_rule: "{{ stig_remediate_rule }}"

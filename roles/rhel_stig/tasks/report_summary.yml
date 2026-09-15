@@ -1,0 +1,56 @@
+---
+# Always rebuild HTML from XML, write a readable summary, fetch artifacts locally.
+- name: Regenerate HTML reports from result XML
+  ansible.builtin.shell: >
+    oscap xccdf generate report {{ report_dir }}/{{ item.xml }}
+    > {{ report_dir }}/{{ item.html }}
+  args:
+    executable: /bin/bash
+  loop:
+    - { xml: pre-scan-results.xml, html: pre-scan-report.html }
+    - { xml: remediate-results.xml, html: remediate-report.html }
+    - { xml: post-scan-results.xml, html: post-scan-report.html }
+  loop_control:
+    label: "{{ item.html }}"
+  failed_when: false
+  changed_when: true
+
+- name: Copy STIG summary script to target
+  ansible.builtin.copy:
+    src: summarize_stig_results.py
+    dest: "{{ report_dir }}/summarize_stig_results.py"
+    mode: "0755"
+
+- name: Build human-readable STIG summary
+  ansible.builtin.command:
+    argv:
+      - "{{ ansible_python_interpreter | default('/usr/bin/python3') }}"
+      - "{{ report_dir }}/summarize_stig_results.py"
+      - --pre
+      - "{{ report_dir }}/pre-scan-results.xml"
+      - --post
+      - "{{ report_dir }}/post-scan-results.xml"
+      - --remediate
+      - "{{ report_dir }}/remediate-results.xml"
+      - --focus-rule
+      - "{{ stig_remediate_rule }}"
+      - --output
+      - "{{ report_dir }}/stig-summary.txt"
+  register: stig_summary
+  changed_when: true
+
+- name: Show STIG summary
+  ansible.builtin.debug:
+    msg: "{{ stig_summary.stdout_lines }}"
+
+- name: Fetch reports and summary to control node
+  ansible.builtin.fetch:
+    src: "{{ report_dir }}/{{ item }}"
+    dest: "./reports/{{ inventory_hostname }}/"
+    flat: true
+  loop:
+    - pre-scan-report.html
+    - remediate-report.html
+    - post-scan-report.html
+    - stig-summary.txt
+  failed_when: false

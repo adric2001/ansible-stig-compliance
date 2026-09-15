@@ -1,0 +1,66 @@
+---
+# Ansible Amazon EC2 dynamic inventory
+# Docs: https://docs.ansible.com/ansible/latest/collections/amazon/aws/aws_ec2_inventory.html
+#
+# Selection model (recommended):
+#   Tag instances you want scanned with:  stig_scan = true
+#   Optional extras:
+#     ansible_user   = ec2-user|centos|ubuntu
+#     ansible_python = /usr/bin/python3.9
+#     stig_env       = lab|prod   (use with: ansible-playbook ... --limit tag_stig_env_lab)
+#
+# Auth: standard AWS SDK chain (env vars, ~/.aws/credentials, instance role).
+#   export AWS_PROFILE=...   # or AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+#
+# Preview inventory:
+#   ansible-inventory -i inventory/ --graph
+#   ansible-inventory -i inventory/ --list
+#
+# Run only tagged hosts:
+#   ansible-playbook -i inventory/ site.yml
+# Limit further:
+#   ansible-playbook -i inventory/ site.yml --limit tag_stig_env_lab
+#   ansible-playbook -i inventory/ site.yml --limit STIG_TEST_BOX
+
+plugin: amazon.aws.aws_ec2
+
+regions:
+  - us-east-1
+
+# Only running instances that opted into STIG scanning.
+# (filters are AND'd — more reliable than include_filters alone)
+filters:
+  instance-state-name: running
+  tag:stig_scan:
+    - "true"
+    - "True"
+    - "yes"
+    - "1"
+
+hostnames:
+  - tag:Name
+  - private-ip-address
+  - dns-name
+
+compose:
+  # Prefer public DNS for laptop -> EC2; fall back to private IP (VPN/bastion).
+  ansible_host: public_dns_name | default(private_ip_address, true) | default(public_ip_address, true)
+  ansible_user: ec2_tags.ansible_user | default("ec2-user")
+  # Alma/RHEL 8 need 3.9+ for ansible-core 2.17+; site.yml bootstraps python39 if missing.
+  # Override per host with EC2 tag ansible_python if needed.
+  ansible_python_interpreter: ec2_tags.ansible_python | default("/usr/bin/python3.9")
+
+keyed_groups:
+  # Creates groups like: tag_stig_scan_true, tag_stig_env_lab, tag_Name_STIG_TEST_BOX
+  - key: ec2_tags
+    prefix: tag
+  - key: placement.region
+    prefix: aws_region
+  - key: instance_type
+    prefix: instance_type
+
+groups:
+  # Every host from this inventory is opted-in via tag:stig_scan filter above.
+  stig_hosts: true
+
+leading_separator: false

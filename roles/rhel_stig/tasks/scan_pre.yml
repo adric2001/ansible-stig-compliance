@@ -1,0 +1,17 @@
+---
+- name: Execute pre-remediation OpenSCAP scan ({{ stig_os_key }})
+  ansible.builtin.command: >
+    oscap xccdf eval
+    --profile {{ stig_profile }}
+    --results {{ report_dir }}/pre-scan-results.xml
+    --report {{ report_dir }}/pre-scan-report.html
+    {{ scap_ds_path }}
+  register: pre_scan_result
+  failed_when: false
+  changed_when: true
+
+- name: Display pre-scan exit status
+  ansible.builtin.debug:
+    msg: >-
+      Pre-scan completed for {{ stig_os_key }}.
+      Report saved at {{ report_dir }}/pre-scan-report.html
